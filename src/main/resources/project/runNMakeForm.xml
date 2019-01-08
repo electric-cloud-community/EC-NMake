@@ -1,0 +1,62 @@
+    <editor>
+		<help>/commander/pages/@PLUGIN_NAME@/@PLUGIN_KEY@_help?s=Administration&amp;ss=Plugins#runNMake
+		</help> 
+       <formElement>
+            <type>entry</type>
+			<label>Working Directory</label>
+            <property>workingDirectory</property>
+            <documentation>Provide the path where the project resides.</documentation>
+            <required>1</required>
+        </formElement>
+        <formElement>
+            <type>entry</type>
+            <label>Make File</label>
+            <property>file</property>
+            <documentation>Provide the makefile to execute in case its name is not 'Makefile'.(This is the command-line '-f' option)</documentation>
+        </formElement>
+        <formElement>
+            <type>entry</type>
+			<label>Target</label>
+            <property>target</property>
+            <documentation>Provide the name of the target or targets in the Makefile to execute.</documentation>
+        </formElement>
+        <formElement>
+            <type>checkbox</type>
+            <label>- P</label>
+            <property>pOption</property>
+            <checkedValue>1</checkedValue>
+            <uncheckedValue>0</uncheckedValue>
+            <documentation>Displays information to standard output, and then runs the build. If no makefile or command-line target exists, it displays information only.(This is the command-line '-P' option)</documentation>
+        </formElement>
+        <formElement>
+            <type>checkbox</type>
+            <label>- A</label>
+            <property>aOption</property>
+            <checkedValue>1</checkedValue>
+            <uncheckedValue>0</uncheckedValue>
+            <documentation>Forces a build of all evaluated targets, even if not out-of-date with respect to dependencies. This does not force a build of unrelated targets.(This is the command-line '-A' option)</documentation>
+        </formElement>
+         <formElement>
+            <type>checkbox</type>
+            <label>- K</label>
+            <property>kOption</property>
+            <checkedValue>1</checkedValue>
+            <uncheckedValue>0</uncheckedValue>
+            <documentation>Continues building unrelated dependencies if a command returns an error.(This is the command-line '-K' option)</documentation>
+        </formElement>
+         <formElement>
+            <type>checkbox</type>
+            <label>- C</label>
+            <property>cOption</property>
+            <checkedValue>1</checkedValue>
+            <uncheckedValue>0</uncheckedValue>
+            <documentation>Suppresses default output, including nonfatal NMAKE errors or warnings, timestamps, and NMAKE copyright messages.(This is the command-line '-C' option)</documentation>
+        </formElement>
+         <formElement>
+            <type>entry</type>
+            <label>Additional Options</label>
+            <property>additionalOptions</property>
+            <required>0</required>
+            <documentation>Provide additional NMake options to execute, if desired.</documentation>
+        </formElement>
+      </editor>

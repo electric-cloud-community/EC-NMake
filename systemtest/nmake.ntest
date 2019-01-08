@@ -1,0 +1,36 @@
+# -*-Perl-*-
+
+# nmake.ntest -
+#
+# Exercise basic components of EC-NMake plugin
+#
+# Copyright (c) 2005-2010 Electric Cloud, Inc.
+# All rights reserved
+
+use strict;
+use warnings;
+use ECTest;
+
+# read in setup and tests that are common to all EC-Nmake plugin archives
+# system tests
+
+
+
+use strict;
+require "$::gTestFileDir/../../EC-NMake/systemtest/nmake-common.ntest";
+
+
+
+ntest "check-runMaven-present", {}, sub {
+    # Check that the plugin contains required components
+    my $xpath = $::N->getSteps("$::gPlugin_name","runNMake");
+    assertOK($xpath,"get steps");
+    assertEq("createNMakeCommandLine", $xpath->findvalue("//step[1]/stepName"), "step 1: createNMakeCommandLine");
+    assertEq("runNMakeCommandLine", $xpath->findvalue("//step[2]/stepName"), "step 2: runNMakeCommandLine");
+
+};
+
+
+
+
+

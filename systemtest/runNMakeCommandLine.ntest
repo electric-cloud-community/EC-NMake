@@ -1,0 +1,729 @@
+# -*-Perl-*-
+
+# nmake-RunNMake.ntest -
+#
+# ECNMake
+#
+# Copyright (c) 2005-2010 Electric Cloud, Inc.
+# All rights reserved
+
+use strict;
+use ECTest;
+use ECSelenium;
+
+ 
+# system tests
+
+
+require "$::gTestFileDir/../../EC-NMake/systemtest/nmake-common.ntest";
+
+
+$::grunNMakeCreated = 0;
+$::gProjectImported = 0;
+
+#stores the result wheter the result of the procedure is success or error
+my $outcome = "";
+
+
+
+
+sub importProject() {
+    assertOK($::N->import(
+                     { file =>"$::gTestFileDir/NmakeTest.xml",
+               path  => "/projects/NmakeTest",
+               force => 1
+             } ), "import runNMakeCommandLine");
+   
+   assertOK($::N->getProcedure("NmakeTest", "withWorkingDirectoryOnly"),"withWorkingDirectoryOnly procedure exists");
+   assertOK($::N->getProcedure("NmakeTest", "moreThanOneTarget"),"moreThanOneTarget procedure exists");
+   assertOK($::N->getProcedure("NmakeTest", "additionalOptionsTest"),"additionalOptionsTest procedure exists");
+   assertOK($::N->getProcedure("NmakeTest", "withAllOptions"),"withAllOptions procedure exists");
+   assertOK($::N->getProcedure("NmakeTest", "withAnotherMakeFileName"),"withAnotherMakeFileName procedure exists");
+   assertOK($::N->getProcedure("NmakeTest", "withAOptionOnly"),"withAOptionOnly procedure exists");
+   assertOK($::N->getProcedure("NmakeTest", "withCOptionOnly"),"withCOptionOnly procedure exists");
+   assertOK($::N->getProcedure("NmakeTest", "withKOptionOnly"),"withKOptionOnly procedure exists");
+   assertOK($::N->getProcedure("NmakeTest", "withPOptionOnly"),"withPOptionOnly procedure exists");
+   assertOK($::N->getProcedure("NmakeTest", "wrongMakeFileName"),"wrongTargetName procedure exists");
+
+    $::gProjectImported = 1;
+}
+
+
+
+sub doSetup() {
+
+    if(! $::gProjectImported) {
+        importProject();
+    }
+
+   
+}
+ 
+
+
+#moreThanOneTarget 
+
+#Test an nmake command with two targets 
+
+ ntest "moreThanOneTarget", {}, sub {
+      doSetup();
+      # run test job
+     
+         my $xpath = $::N->runProcedure("NmakeTest", 
+                 { procedureName => "moreThanOneTarget",
+                 pollInterval  => '1',
+                 timeout => 600,
+                      actualParameter => [
+                     
+                     ]
+          });
+          
+       
+              # make sure it finished
+             my $jobId = 0;
+             my $status = "";
+             
+             assertOK($xpath, "runProcedure with errors");
+             if ($xpath) {
+                 $jobId  = $xpath->findvalue("//jobId");
+                 $status = $xpath->findvalue("//status");
+                 $outcome = $xpath->findvalue("//outcome");
+         
+                 assertTrue($jobId && $jobId ne "",'valid job id');
+                 assertEq('completed',$status,"job $jobId complete");
+         
+                 #abort if job did not finish
+                 if ($status ne "completed") {
+                     assertOK($::N->abortJob($jobId, {force => 1}));
+                 }
+             }
+ 
+     # get the job details
+     $xpath = $::N->getJobDetails($jobId);
+ 
+     # write the job details to a file in the test directory
+     writeFile("$::gCurrentTestDir/jobDetails.log","====start Job Details====\n$xpath->{_xml}\n\n====end job details===\n\n");
+ 
+     # get the value of the nmakeCommandLine property
+     my $cmd = $xpath->findvalue("//property[propertyName='nmakeCommandLine']/value");
+ 
+ 
+     # get the value of the nMakeWorkingDir property
+     my $dir = $xpath->findvalue("//property[propertyName='nMakeWorkingDir']/value");
+ 
+     # make sure the $cmd and $dir are what was expected
+     assertEq('nmake /NOLOGO all clean', $cmd, "nmake command line");
+     assertEq('C:\MakeForJava', $dir, "nmake working directory");
+  };
+
+#wihtOneTarget
+
+#Test an nmake command with one target 
+    
+ ntest "wihtOneTarget", {}, sub {
+      doSetup();
+      # run test job
+     
+         my $xpath = $::N->runProcedure("NmakeTest", 
+                 { procedureName => "wihtOneTarget",
+                 pollInterval  => '1',
+                 timeout => 600,
+                      actualParameter => [
+                     
+                     ]
+          });
+          
+       
+              # make sure it finished
+             my $jobId = 0;
+             my $status = "";
+             
+             assertOK($xpath, "runProcedure with errors");
+             if ($xpath) {
+                 $jobId  = $xpath->findvalue("//jobId");
+                 $status = $xpath->findvalue("//status");
+                 $outcome = $xpath->findvalue("//outcome");
+         
+                 assertTrue($jobId && $jobId ne "",'valid job id');
+                 assertEq('completed',$status,"job $jobId complete");
+         
+                 #abort if job did not finish
+                 if ($status ne "completed") {
+                     assertOK($::N->abortJob($jobId, {force => 1}));
+                 }
+             }
+ 
+     # get the job details
+     $xpath = $::N->getJobDetails($jobId);
+ 
+     # write the job details to a file in the test directory
+     writeFile("$::gCurrentTestDir/jobDetails.log","====start Job Details====\n$xpath->{_xml}\n\n====end job details===\n\n");
+ 
+     # get the value of the nmakeCommandLine property
+     my $cmd = $xpath->findvalue("//property[propertyName='nmakeCommandLine']/value");
+ 
+ 
+     # get the value of the nMakeWorkingDir property
+     my $dir = $xpath->findvalue("//property[propertyName='nMakeWorkingDir']/value");
+ 
+     # make sure the $cmd and $dir are what was expected
+     assertEq('nmake /NOLOGO clean', $cmd, "nmake command line");
+     assertEq('C:\MakeForJava', $dir, "nmake working directory");
+  };
+
+
+
+#withAllOptions
+
+#Test an nmake command with all options available
+    
+ ntest "withAllOptions", {}, sub {
+      doSetup();
+      # run test job
+     
+         my $xpath = $::N->runProcedure("NmakeTest", 
+                 { procedureName => "withAllOptions",
+                 pollInterval  => '1',
+                 timeout => 600,
+                      actualParameter => [
+                     
+                     ]
+          });
+          
+       
+              # make sure it finished
+             my $jobId = 0;
+             my $status = "";
+             
+             assertOK($xpath, "runProcedure with errors");
+             if ($xpath) {
+                 $jobId  = $xpath->findvalue("//jobId");
+                 $status = $xpath->findvalue("//status");
+                 $outcome = $xpath->findvalue("//outcome");
+         
+                 assertTrue($jobId && $jobId ne "",'valid job id');
+                 assertEq('completed',$status,"job $jobId complete");
+         
+                 #abort if job did not finish
+                 if ($status ne "completed") {
+                     assertOK($::N->abortJob($jobId, {force => 1}));
+                 }
+             }
+ 
+     # get the job details
+     $xpath = $::N->getJobDetails($jobId);
+ 
+     # write the job details to a file in the test directory
+     writeFile("$::gCurrentTestDir/jobDetails.log","====start Job Details====\n$xpath->{_xml}\n\n====end job details===\n\n");
+ 
+     # get the value of the nmakeCommandLine property
+     my $cmd = $xpath->findvalue("//property[propertyName='nmakeCommandLine']/value");
+ 
+ 
+     # get the value of the nMakeWorkingDir property
+     my $dir = $xpath->findvalue("//property[propertyName='nMakeWorkingDir']/value");
+ 
+     # make sure the $cmd and $dir are what was expected
+     assertEq('nmake /NOLOGO -P -A -K -C', $cmd, "nmake command line");
+     assertEq('C:\MakeForJava', $dir, "nmake working directory");
+  };
+
+
+#withAnotherMakeFileName
+
+#Test an nmake command that refers to a file that its not named Makefile
+    
+ ntest "withAnotherMakeFileName", {}, sub {
+      doSetup();
+      # run test job
+     
+         my $xpath = $::N->runProcedure("NmakeTest", 
+                 { procedureName => "withAnotherMakeFileName",
+                 pollInterval  => '1',
+                 timeout => 600,
+                      actualParameter => [
+                     
+                     ]
+          });
+          
+       
+              # make sure it finished
+             my $jobId = 0;
+             my $status = "";
+             
+             assertOK($xpath, "runProcedure with errors");
+             if ($xpath) {
+                 $jobId  = $xpath->findvalue("//jobId");
+                 $status = $xpath->findvalue("//status");
+                 $outcome = $xpath->findvalue("//outcome");
+         
+                 assertTrue($jobId && $jobId ne "",'valid job id');
+                 assertEq('completed',$status,"job $jobId complete");
+         
+                 #abort if job did not finish
+                 if ($status ne "completed") {
+                     assertOK($::N->abortJob($jobId, {force => 1}));
+                 }
+             }
+ 
+     # get the job details
+     $xpath = $::N->getJobDetails($jobId);
+ 
+     # write the job details to a file in the test directory
+     writeFile("$::gCurrentTestDir/jobDetails.log","====start Job Details====\n$xpath->{_xml}\n\n====end job details===\n\n");
+ 
+     # get the value of the nmakeCommandLine property
+     my $cmd = $xpath->findvalue("//property[propertyName='nmakeCommandLine']/value");
+ 
+ 
+     # get the value of the nMakeWorkingDir property
+     my $dir = $xpath->findvalue("//property[propertyName='nMakeWorkingDir']/value");
+ 
+     # make sure the $cmd and $dir are what was expected
+     assertEq('nmake /NOLOGO -f simpleBean.mk', $cmd, "nmake command line");
+     assertEq('C:\MakeForJava', $dir, "nmake working directory");
+  };
+  
+  
+#withAOptionOnly
+ 
+#Test an nmake command with -A option
+      
+   ntest "withAOptionOnly", {}, sub {
+        doSetup();
+        # run test job
+       
+           my $xpath = $::N->runProcedure("NmakeTest", 
+                   { procedureName => "withAOptionOnly",
+                   pollInterval  => '1',
+                   timeout => 600,
+                        actualParameter => [
+                       
+                       ]
+            });
+            
+         
+                # make sure it finished
+               my $jobId = 0;
+               my $status = "";
+               
+               assertOK($xpath, "runProcedure with errors");
+               if ($xpath) {
+                   $jobId  = $xpath->findvalue("//jobId");
+                   $status = $xpath->findvalue("//status");
+                   $outcome = $xpath->findvalue("//outcome");
+           
+                   assertTrue($jobId && $jobId ne "",'valid job id');
+                   assertEq('completed',$status,"job $jobId complete");
+           
+                   #abort if job did not finish
+                   if ($status ne "completed") {
+                       assertOK($::N->abortJob($jobId, {force => 1}));
+                   }
+               }
+   
+       # get the job details
+       $xpath = $::N->getJobDetails($jobId);
+   
+       # write the job details to a file in the test directory
+       writeFile("$::gCurrentTestDir/jobDetails.log","====start Job Details====\n$xpath->{_xml}\n\n====end job details===\n\n");
+   
+       # get the value of the nmakeCommandLine property
+       my $cmd = $xpath->findvalue("//property[propertyName='nmakeCommandLine']/value");
+   
+   
+       # get the value of the nMakeWorkingDir property
+       my $dir = $xpath->findvalue("//property[propertyName='nMakeWorkingDir']/value");
+   
+       # make sure the $cmd and $dir are what was expected
+       assertEq('nmake /NOLOGO -A', $cmd, "nmake command line");
+       assertEq('C:\MakeForJava', $dir, "nmake working directory");
+  };
+  
+  
+#withCOptionOnly
+     
+#Test an nmake command with -C option
+        
+     ntest "withCOptionOnly", {}, sub {
+          doSetup();
+          # run test job
+         
+             my $xpath = $::N->runProcedure("NmakeTest", 
+                     { procedureName => "withCOptionOnly",
+                     pollInterval  => '1',
+                     timeout => 600,
+                          actualParameter => [
+                         
+                         ]
+              });
+              
+           
+                  # make sure it finished
+                 my $jobId = 0;
+                 my $status = "";
+                 
+                 assertOK($xpath, "runProcedure with errors");
+                 if ($xpath) {
+                     $jobId  = $xpath->findvalue("//jobId");
+                     $status = $xpath->findvalue("//status");
+                     $outcome = $xpath->findvalue("//outcome");
+             
+                     assertTrue($jobId && $jobId ne "",'valid job id');
+                     assertEq('completed',$status,"job $jobId complete");
+             
+                     #abort if job did not finish
+                     if ($status ne "completed") {
+                         assertOK($::N->abortJob($jobId, {force => 1}));
+                     }
+                 }
+     
+         # get the job details
+         $xpath = $::N->getJobDetails($jobId);
+     
+         # write the job details to a file in the test directory
+         writeFile("$::gCurrentTestDir/jobDetails.log","====start Job Details====\n$xpath->{_xml}\n\n====end job details===\n\n");
+     
+         # get the value of the nmakeCommandLine property
+         my $cmd = $xpath->findvalue("//property[propertyName='nmakeCommandLine']/value");
+     
+     
+         # get the value of the nMakeWorkingDir property
+         my $dir = $xpath->findvalue("//property[propertyName='nMakeWorkingDir']/value");
+     
+         # make sure the $cmd and $dir are what was expected
+         assertEq('nmake /NOLOGO -C', $cmd, "nmake command line");
+         assertEq('C:\MakeForJava', $dir, "nmake working directory");
+  };
+  
+  
+#withKOptionOnly
+         
+#Test an nmake command with -K option
+          
+       ntest "withKOptionOnly", {}, sub {
+            doSetup();
+            # run test job
+           
+               my $xpath = $::N->runProcedure("NmakeTest", 
+                       { procedureName => "withKOptionOnly",
+                       pollInterval  => '1',
+                       timeout => 600,
+                            actualParameter => [
+                           
+                           ]
+                });
+                
+             
+                    # make sure it finished
+                   my $jobId = 0;
+                   my $status = "";
+                   
+                   assertOK($xpath, "runProcedure with errors");
+                   if ($xpath) {
+                       $jobId  = $xpath->findvalue("//jobId");
+                       $status = $xpath->findvalue("//status");
+                       $outcome = $xpath->findvalue("//outcome");
+               
+                       assertTrue($jobId && $jobId ne "",'valid job id');
+                       assertEq('completed',$status,"job $jobId complete");
+               
+                       #abort if job did not finish
+                       if ($status ne "completed") {
+                           assertOK($::N->abortJob($jobId, {force => 1}));
+                       }
+                   }
+       
+           # get the job details
+           $xpath = $::N->getJobDetails($jobId);
+       
+           # write the job details to a file in the test directory
+           writeFile("$::gCurrentTestDir/jobDetails.log","====start Job Details====\n$xpath->{_xml}\n\n====end job details===\n\n");
+       
+           # get the value of the nmakeCommandLine property
+           my $cmd = $xpath->findvalue("//property[propertyName='nmakeCommandLine']/value");
+       
+       
+           # get the value of the nMakeWorkingDir property
+           my $dir = $xpath->findvalue("//property[propertyName='nMakeWorkingDir']/value");
+       
+           # make sure the $cmd and $dir are what was expected
+           assertEq('nmake /NOLOGO -K', $cmd, "nmake command line");
+           assertEq('C:\MakeForJava', $dir, "nmake working directory");
+  };
+  
+  
+  
+  #withPOptionOnly
+         
+#Test an nmake command with -P option
+            
+ 
+            
+         ntest "withPOptionOnly", {}, sub {
+              doSetup();
+              # run test job
+             
+                 my $xpath = $::N->runProcedure("NmakeTest", 
+                         { procedureName => "withPOptionOnly",
+                         pollInterval  => '1',
+                         timeout => 600,
+                              actualParameter => [
+                             
+                             ]
+                  });
+                  
+               
+                      # make sure it finished
+                     my $jobId = 0;
+                     my $status = "";
+                     
+                     assertOK($xpath, "runProcedure with errors");
+                     if ($xpath) {
+                         $jobId  = $xpath->findvalue("//jobId");
+                         $status = $xpath->findvalue("//status");
+                         $outcome = $xpath->findvalue("//outcome");
+                 
+                         assertTrue($jobId && $jobId ne "",'valid job id');
+                         assertEq('completed',$status,"job $jobId complete");
+                 
+                         #abort if job did not finish
+                         if ($status ne "completed") {
+                             assertOK($::N->abortJob($jobId, {force => 1}));
+                         }
+                     }
+         
+             # get the job details
+             $xpath = $::N->getJobDetails($jobId);
+         
+             # write the job details to a file in the test directory
+             writeFile("$::gCurrentTestDir/jobDetails.log","====start Job Details====\n$xpath->{_xml}\n\n====end job details===\n\n");
+         
+             # get the value of the nmakeCommandLine property
+             my $cmd = $xpath->findvalue("//property[propertyName='nmakeCommandLine']/value");
+         
+         
+             # get the value of the nMakeWorkingDir property
+             my $dir = $xpath->findvalue("//property[propertyName='nMakeWorkingDir']/value");
+         
+             # make sure the $cmd and $dir are what was expected
+             assertEq('nmake /NOLOGO -P', $cmd, "nmake command line");
+             assertEq('C:\MakeForJava', $dir, "nmake working directory");
+  };
+  
+  
+#withWorkingDirectoryOnly
+         
+#Test an nmake command with with the working Directory only 
+#this will execute the code inside the MAKEFILE file in the working directory specified 
+
+ 
+      
+   ntest "withWorkingDirectoryOnly", {}, sub {
+        doSetup();
+        # run test job
+       
+           my $xpath = $::N->runProcedure("NmakeTest", 
+                   { procedureName => "withWorkingDirectoryOnly",
+                   pollInterval  => '1',
+                   timeout => 600,
+                        actualParameter => [
+                       
+                       ]
+            });
+            
+         
+                # make sure it finished
+               my $jobId = 0;
+               my $status = "";
+               
+               assertOK($xpath, "runProcedure with errors");
+               if ($xpath) {
+                   $jobId  = $xpath->findvalue("//jobId");
+                   $status = $xpath->findvalue("//status");
+                   $outcome = $xpath->findvalue("//outcome");
+           
+                   assertTrue($jobId && $jobId ne "",'valid job id');
+                   assertEq('completed',$status,"job $jobId complete");
+           
+                   #abort if job did not finish
+                   if ($status ne "completed") {
+                       assertOK($::N->abortJob($jobId, {force => 1}));
+                   }
+               }
+   
+       # get the job details
+       $xpath = $::N->getJobDetails($jobId);
+   
+       # write the job details to a file in the test directory
+       writeFile("$::gCurrentTestDir/jobDetails.log","====start Job Details====\n$xpath->{_xml}\n\n====end job details===\n\n");
+   
+       # get the value of the nmakeCommandLine property
+       my $cmd = $xpath->findvalue("//property[propertyName='nmakeCommandLine']/value");
+   
+   
+       # get the value of the nMakeWorkingDir property
+       my $dir = $xpath->findvalue("//property[propertyName='nMakeWorkingDir']/value");
+   
+       # make sure the $cmd and $dir are what was expected
+       assertEq('nmake /NOLOGO', $cmd, "nmake command line");
+       assertEq('C:\MakeForJava', $dir, "nmake working directory");
+    };
+  
+
+  #wrongMakeFileName 
+      
+   ntest "wrongMakeFileName", {}, sub {
+        doSetup();
+        # run test job
+       
+           my $xpath = $::N->runProcedure("NmakeTest", 
+                   { procedureName => "wrongMakeFileName",
+                   pollInterval  => '1',
+                   timeout => 600,
+                        actualParameter => [
+                       
+                       ]
+            });
+            
+         
+                # make sure it finished
+               my $jobId = 0;
+               my $status = "";
+               
+               assertOK($xpath, "runProcedure with errors");
+               if ($xpath) {
+                   $jobId  = $xpath->findvalue("//jobId");
+                   $status = $xpath->findvalue("//status");
+                   $outcome = $xpath->findvalue("//outcome");
+           
+                   assertTrue($jobId && $jobId ne "",'valid job id');
+                   assertEq('completed',$status,"job $jobId complete");
+           
+                   #abort if job did not finish
+                   if ($status ne "completed") {
+                       assertOK($::N->abortJob($jobId, {force => 1}));
+                   }
+               }
+   
+       # get the job details
+       $xpath = $::N->getJobDetails($jobId);
+   
+       # write the job details to a file in the test directory
+       writeFile("$::gCurrentTestDir/jobDetails.log","====start Job Details====\n$xpath->{_xml}\n\n====end job details===\n\n");
+   
+       # get the value of the nmakeCommandLine property
+       my $cmd = $xpath->findvalue("//property[propertyName='nmakeCommandLine']/value");
+   
+   
+       # get the value of the nMakeWorkingDir property
+       my $dir = $xpath->findvalue("//property[propertyName='nMakeWorkingDir']/value");
+   
+       # make sure the $cmd and $dir are what was expected
+       assertEq('nmake /NOLOGO -f wrongMakeFileName', $cmd, "nmake command line");
+       assertEq('C:\MakeForJava', $dir, "nmake working directory");
+    };
+    
+      #wrongTargetName 
+          
+       ntest "wrongTargetName", {}, sub {
+            doSetup();
+            # run test job
+           
+               my $xpath = $::N->runProcedure("NmakeTest", 
+                       { procedureName => "wrongTargetName",
+                       pollInterval  => '1',
+                       timeout => 600,
+                            actualParameter => [
+                           
+                           ]
+                });
+                
+             
+                    # make sure it finished
+                   my $jobId = 0;
+                   my $status = "";
+                   
+                   assertOK($xpath, "runProcedure with errors");
+                   if ($xpath) {
+                       $jobId  = $xpath->findvalue("//jobId");
+                       $status = $xpath->findvalue("//status");
+                       $outcome = $xpath->findvalue("//outcome");
+               
+                       assertTrue($jobId && $jobId ne "",'valid job id');
+                       assertEq('completed',$status,"job $jobId complete");
+               
+                       #abort if job did not finish
+                       if ($status ne "completed") {
+                           assertOK($::N->abortJob($jobId, {force => 1}));
+                       }
+                   }
+       
+           # get the job details
+           $xpath = $::N->getJobDetails($jobId);
+       
+           # write the job details to a file in the test directory
+           writeFile("$::gCurrentTestDir/jobDetails.log","====start Job Details====\n$xpath->{_xml}\n\n====end job details===\n\n");
+       
+           # get the value of the nmakeCommandLine property
+           my $cmd = $xpath->findvalue("//property[propertyName='nmakeCommandLine']/value");
+       
+       
+           # get the value of the nMakeWorkingDir property
+           my $dir = $xpath->findvalue("//property[propertyName='nMakeWorkingDir']/value");
+       
+           # make sure the $cmd and $dir are what was expected
+           assertEq('nmake /NOLOGO wrongTargetName', $cmd, "nmake command line");
+           assertEq('C:\MakeForJava', $dir, "nmake working directory");
+    };
+    
+#additionalOptionsTest 
+          
+       ntest "additionalOptionsTest", {}, sub {
+            doSetup();
+            # run test job
+           
+               my $xpath = $::N->runProcedure("NmakeTest", 
+                       { procedureName => "additionalOptionsTest",
+                       pollInterval  => '1',
+                       timeout => 600,
+                            actualParameter => [
+                           
+                           ]
+                });
+                
+             
+                    # make sure it finished
+                   my $jobId = 0;
+                   my $status = "";
+                   
+                   assertOK($xpath, "runProcedure with errors");
+                   if ($xpath) {
+                       $jobId  = $xpath->findvalue("//jobId");
+                       $status = $xpath->findvalue("//status");
+                       $outcome = $xpath->findvalue("//outcome");
+               
+                       assertTrue($jobId && $jobId ne "",'valid job id');
+                       assertEq('completed',$status,"job $jobId complete");
+               
+                       #abort if job did not finish
+                       if ($status ne "completed") {
+                           assertOK($::N->abortJob($jobId, {force => 1}));
+                       }
+                   }
+       
+           # get the job details
+           $xpath = $::N->getJobDetails($jobId);
+       
+       
+           # get the value of the nmakeCommandLine property
+           my $cmd = $xpath->findvalue("//property[propertyName='nmakeCommandLine']/value");
+       
+       
+           # get the value of the nMakeWorkingDir property
+           my $dir = $xpath->findvalue("//property[propertyName='nMakeWorkingDir']/value");
+       
+           # make sure the $cmd and $dir are what was expected
+           assertEq('nmake /NOLOGO -X errorlog', $cmd, "nmake command line");
+           assertEq('C:\MakeForJava', $dir, "nmake working directory");
+    };
